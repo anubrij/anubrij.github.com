@@ -1,2 +1,0 @@
-# RaxGanttCharts
-Gantt chart 
