@@ -2316,9 +2316,13 @@ if (typeof Remote === "undefined") {
                         }
 
                         if (hasFrozenColumns() && (i > options.frozenColumn)) {
-                            appendCellHtml(stringArrayR, row, i, colspan, d);
+                            var cobj = getTimelineColspan(d, i);
+                            if (cobj.gantt) {
+                                colspan = cobj.c;
+                            }
+                            appendCellHtml(stringArrayR, row, i, colspan, d, cobj.gantt);
                         } else {
-                            appendCellHtml(stringArrayL, row, i, colspan, d);
+                            appendCellHtml(stringArrayL, row, i, colspan, d); //Anubrij Change - 1
                         }
                     } else if (hasFrozenColumns() && (i <= options.frozenColumn)) {
                         appendCellHtml(stringArrayL, row, i, colspan, d);
@@ -2335,8 +2339,24 @@ if (typeof Remote === "undefined") {
                     stringArrayR.push("</div>");
                 }
             }
-
-            function appendCellHtml(stringArray, row, cell, colspan, item) {
+            //Anubrij
+            function getTimelineColspan(item , cell) {
+                var d = new Date();
+                var sDate = d.parseExact(item.tStart, 'mm/dd/yyyy');
+                var fDate = d.parseExact(item.tFinish, 'mm/dd/yyyy');
+                var tId = sDate.getMonth() + '-' + sDate.getFullYear();
+                var m = columns[cell];
+                if (m.id === tId) {
+                    var fID = fDate.getMonth() + '-' + fDate.getFullYear();
+                    var fClm = columns.filter(function (c) { return c.id === fID; })[0];
+                    var nextCell = columns.indexOf(fClm);
+                    var colspan = (nextCell - cell) + 1;
+                    return { c: colspan, gantt: true };
+                }
+                return { c: 1, gantt: false };
+            }
+            //change By Anubrij
+            function appendCellHtml(stringArray, row, cell, colspan, item , timeline) {
                 var m = columns[cell];
                 var cellCss = "remote-cell l" + cell + " r" + Math.min(columns.length - 1, cell + colspan - 1) +
                     (m.cssClass ? " " + m.cssClass : "");
@@ -2357,7 +2377,9 @@ if (typeof Remote === "undefined") {
                 }
 
                 stringArray.push("<div class='" + cellCss + "'>");
-
+                if (timeline) {
+                    stringArray.push("<div style='background-color:blue ; height: 80%; margin-top:2px;'></div>");
+                }
                 // if there is a corresponding row (if not, this is the Add New row or this data hasn't been loaded yet)
                 if (item) {
                     var value = getDataItemValueForColumn(item, m);
@@ -2898,7 +2920,11 @@ if (typeof Remote === "undefined") {
                         }
 
                         if (columnPosRight[Math.min(ii - 1, i + colspan - 1)] > range.leftPx) {
-                            appendCellHtml(stringArray, row, i, colspan, d);
+                            var cobj = getTimelineColspan(d, i);
+                            if (cobj.gantt) {
+                                colspan = cobj.c;
+                            }
+                            appendCellHtml(stringArray, row, i, colspan, d, cobj.gantt); //Anubrij -c2
                             cellsAdded++;
                         }
 
